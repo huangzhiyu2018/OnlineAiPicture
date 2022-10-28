@@ -1,0 +1,40 @@
+{% extends 'master.html' %}
+{% block title %}
+{{title}}
+{% endblock %}
+{% block contain %}  
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading" >
+          <h3 class="panel-title"> {{title}}</h3>
+        </div>
+        <div class="panel-body">
+            <form method="post" enctype="multipart/form-data" >
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                <label>{{field.label}}</label> 
+                {{ field }}
+                <span style="color:red" class="erro_msg">{{field.errors.0}}</sapn>
+                </div>
+                {% endfor %}                
+               <button class="btn btn-info " type="submit" value="submit">上传</button>
+              </form>
+            
+        </div>
+    </div>
+    </div>
+
+
+{% endblock %}
+{% block js %} 
+<script type="text/javascript">
+    $(document).ready(function(){        
+        $("#id_file").click(function(){
+          $(".erro_msg").empty();
+        });
+    }    
+    )
+    
+  </script>
+  {% endblock %}

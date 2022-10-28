@@ -1,0 +1,175 @@
+
+{% extends 'master.html' %}
+{% block contain %}
+<div class="container">
+  <div style="margin-bottom: 10px;">
+    <!--
+    <a href="/user/add/" class="btn btn-success"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>添加用户</a>
+   -->
+    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span><input type="button" class="btn btn-success btn-md" id="btn-add" value="添加用户" ></input>
+  </div>
+ <div class="panel panel-default">
+    <div class="panel-heading" >
+        <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>用户列表
+    </div>
+    <div class="panel-body">
+    
+        <table class="table table-bordered">                       
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>用户名</th>                
+                <th>密码</th>                
+                <th>权限</th>                
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for obj in querySet%}
+              <tr>
+                <th scope="row">{{ obj.id }}</th>
+                <td>{{ obj.userName }}</td>
+                <td>*****</td>               
+                <td>{{ obj.get_powerRights_display }}</td>               
+                <td>
+                    
+                    <a class="btn btn-info btn-xs" href='/user/{{obj.id}}/reset/'>重置</a>
+                    <a class="btn btn-info btn-xs" href='/user/{{obj.id}}/edit/'>编辑</a>
+                    <!--自定义一个属性uid-->
+                    <input type="button"  class="btn btn-danger btn-xs btn_delete" uid="{{obj.id}}" value="删除">
+                    
+                </td>
+              </tr>
+             {% endfor %}
+            </tbody>
+          </table>
+    </div>
+  </div>
+</div>
+<!--弹出删除框-->
+<div class="modal fade" id="alert" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="alert alert-danger alert-dismissible fade in" role="alert">      
+      <h4>是否确定删除</h4>
+      <p style="margin:10px 0px">
+        删除后不可恢复
+      </p>
+      <p style="text-align:right">
+        <button type="button" class="btn btn-danger" id="ensure_btn">确定</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- 弹出添加框 -->
+<div class="modal fade" id="addUser" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel2">添加用户</h4>
+      </div>
+      <div class="modal-body">
+        <form method="post" novalidate id="addform">         
+          {% for field in form %}
+          <div class="form-group">
+              <label>{{field.label}}</label> 
+              {{field}}
+              <span style="color:red" class="erro-msg">{{field.errors.0}}</sapn>
+          </div>
+          {% endfor %}
+         
+          </form>
+      </div>
+      <div class="modal-footer">        
+        <button type="button" class="btn btn-primary" id="btn_ensure_add">确认</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}  
+{%  block js %}
+<script type="text/javascript">
+  
+  var user_id;
+  $(document).ready(function(){
+      deleteclickfunction();
+      ensureclickFunction();
+      btnaddclickFunction();
+      btnensureaddFunction();
+  });
+  
+  function btnensureaddFunction(){
+    $("#btn_ensure_add").on({
+      "click":function(){
+
+        $(".erro-msg").empty();
+
+        $.ajax({
+          url:"/user/addbyajax/",
+          type:"post",
+          dataType:"JSON",
+          data:$("#addform").serialize(),
+          success:function(res){
+            if(res.status){
+              //添加成功
+              alert("添加成功");
+              $("#addUser").modal("hide");
+              location.reload();
+            }
+            else{
+              //验证失败
+              //对每个错误进行枚举，由于视图都是id_field这样的形式，可以拼接
+              $.each(res.errors,function(name,erro){
+                $("#id_"+name).next().text(erro[0]);
+              })
+
+            }
+          }
+        })
+      }
+    })
+  }
+  function btnaddclickFunction(){
+    $("#btn-add").on({
+      "click":function(){
+        $("#addUser").modal("toggle");
+      }
+    })
+  }
+
+  function ensureclickFunction(){
+    $("#ensure_btn").on({
+      "click":function(){
+        $.ajax({
+          url: "/user/delete/",
+          type:"get",
+          data:{
+            uid:user_id
+          },
+          dataType : "json",
+          success:function(res){
+            if(res.status){
+              user_id=0;
+              $("#alert").modal("hide") ;
+              location.reload();
+            }
+          }
+
+        }
+        )
+      },
+    })
+  }
+  function deleteclickfunction(){
+      $(".btn_delete").on({        
+        "click":function(){          
+          user_id=$(this).attr("uid");          
+          $("#alert").modal("show");
+        },
+      })
+  }
+</script>
+{% endblock %}

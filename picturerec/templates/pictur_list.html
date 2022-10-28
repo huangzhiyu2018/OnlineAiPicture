@@ -1,0 +1,333 @@
+{% extends 'master.html' %}
+{% block css %}
+
+<style>
+  #progress {
+      width: 307px;
+      border-style: solid;
+      border-radius: 5px;
+      margin: 10px auto 5px;
+      display: none;
+  }
+
+  #progress_bar {
+      width: 0%;
+      background-color: #00B83F;
+  }
+</style>
+
+{% endblock %}
+{% block title %}
+ {{title}}
+{% endblock %}
+{% block contain %}
+<div class="container">
+  <div style="margin-bottom: 10px;">
+    <a href="/picturerec/uploadfile/" class="btn btn-success"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>上传样本集</a>
+  </div>
+  <div class="panel panel-default">
+      <div class="panel-heading" >
+          <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>样本集列表
+      </div>
+      <div class="panel-body">
+      
+          <table class="table table-bordered">                       
+              <thead>
+                <tr>
+                  <th>选择</th>
+                  <th>ID</th>
+                  <th>特征名</th>                
+                  <th>标签名</th>                
+                  <th>文件路径</th>                           
+                  <th>图片大小</th>    
+                  <th>描述</th>      
+                </tr>
+              </thead>
+              <tbody>
+              <div class="btn-group" data-toggle="buttons">
+                {% for obj in querySet%}
+                  <tr>
+                    <th> 
+                        <input type="radio" name="options" id="{{ obj.id }}" class="setsradio" > </input>
+                    </th>
+                    <th scope="row">{{ obj.id }}</th>
+                    <td>{{ obj.featurename }}</td>
+                    <td>{{ obj.targetname }}</td>               
+                    <td>{{ obj.file }}</td>               
+                    <td>
+                        {{ obj.imageheight }}*{{ obj.imagewidth }}
+                    </td>
+                    <td>
+                      {{ obj.descreb }}             
+                    </td>
+                  </tr>
+                {% endfor %}
+              </div>
+              </tbody>
+            </table>
+      </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">           
+     <table width="100%">        
+      <thead>
+        <tr>
+          <td>
+            <label for="algorithms" class="control-label">算法选择:</label>
+          </td>
+          <td>
+            &nbsp;&nbsp;
+          </td>
+            <td>
+                <select class="combobox form-control " id="algorithms" >   
+                  {% for al in algorithms %}       
+                  <option value="{{al.1}}">{{al.0}}</option>                
+                  {% endfor %}
+              </select>
+            </td>
+            <td>
+              &nbsp;&nbsp;
+            </td>
+            <td>
+              <label for="paramers" class="control-label">算法参数:</label>
+            </td>
+            <td>
+              &nbsp;&nbsp;
+            </td>
+            <td>
+              <input type="text" class="form-control" id="paramers" value="n_neighbors=5" >
+            </td>
+            </tr>
+          </thead>
+            </table>
+        
+    </div>
+    <div class="panel-body">  
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <div class="col-sm-3">
+              <span class="label label-success">交叉验证</span> 
+          </div>
+          <div class="col-sm-3">
+              <label for="cv_number">验证参数</label>
+          </div>
+          <div class="col-sm-3">
+              <input  type="number" class="form-control" value=5 placeholder="交叉验证数5"  min="1" max="100" id="cv_number"></input>
+          </div>
+          <div class="col-sm-3">
+              <button type="button" id="cv_button" class="btn btn-primary">
+                  交叉验证计算
+                </button>
+           </div>
+        </div>
+      </div>    
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <div class="col-sm-3">
+            <span class="label label-success">一般验证</span> 
+            </div>
+            <div class="col-sm-3">
+              <label for="test_rate">测试集比例</label>
+            </div>
+              <div class="col-sm-3">                      
+                <input id="test_rate" type='text'  class="form-control"  placeholder='请输入0.1-1之间数值' onkeyup='value=NumberCheck(value)' value="0.3"/>
+            </div>
+            <div class="col-sm-3">
+            <button type="button" id="test_button" class="btn btn-primary">
+                开始计算
+              </button>
+            </div>
+        </div>
+      </div>
+            
+      
+    
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <div id="progress">
+            <div id="progress_bar"></div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  <!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog  modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">计算结果</h4>
+      </div>
+      <div class="modal-body">
+           <p id="algorithm_result"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>        
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+ 
+</div>
+  {% endblock %}  
+{% block js %}
+<script type="text/javascript">
+    var sets_id;  
+    $(document).ready(function(){
+      cv_click();   
+      radio_click();     
+      test_click();
+      combox_click();
+      upfileclick();
+    });
+    function upfileclick(){
+      $("#btn_upimage").on(
+        {
+          "click":function(){
+            if (sets_id){
+              window.location.href="/image/uploadfile/?set_id="+sets_id+"&algo="+$("#algorithms").find("option:selected").text()+"&alpara="+$("#paramers").val();
+            }else{
+              window.location.href="/image/uploadfile/";
+            }
+            
+          },
+        }
+      )
+    }
+    function combox_click(){
+      $("#algorithms").on({        
+        "change":function(){                   
+          $("#paramers").val($(this).val());
+        },
+      })
+    }
+    function parse_params(paras,check_value){
+      //paras文档输入的值，check_value真实的
+      if (check_value=="无"){
+        //最近邻
+        return "无"
+      }
+
+
+    }
+    function test_click(){
+      $("#test_button").click(function(){
+
+       // $("#msg").html("正在计算..."); //导出提示信息
+       // $("#progress").css('display', 'block'); //显示进度条
+
+      
+        if (sets_id){
+          if($('#test_rate').val()){
+            $.ajax({
+              url: "/algorithm/test/",
+              data: {
+                sets_id: sets_id,
+                test_rate:$('#test_rate').val(),
+                algorithms:$("#algorithms").find("option:selected").text(),
+                algorithm_paras:$("#paramers").val(),
+              },
+              type: "GET",
+              dataType : "json",
+              success: function(result) {
+                 if (result.status){
+                  stext=result.algorithm+"\n score:"+result.score
+                  $("#algorithm_result").html(replaceEnter(stext));
+                  $("#myModal").modal('show');
+                 }
+              }
+            });
+          }
+          else{
+            alert("必须输入测试集比例");  
+          }
+          
+        }
+        else{
+          alert("必须选择数据集");
+        }
+      })
+
+    }
+    function replaceEnter(str){
+      return str.replace(/\n|\r/g, '<br/>')
+    }
+    function cv_click(){
+      $('#cv_button').click(function(){          
+        console.log($("#algorithms").find("option:selected").text());
+        if (sets_id){
+          $.ajax({
+            url: "/algorithm/cv/",
+            data: {
+              sets_id: sets_id,
+              cv_number:$('#cv_number').val(),              
+              algorithms:$("#algorithms").find("option:selected").text(),
+              algorithm_paras:$("#paramers").val(),
+            },
+            type: "GET",
+            dataType : "json",
+            success: function(result) {
+                //console.log(result)
+               if(result.status){
+                stext=result.algorithm+"\n score:"+result.score
+                $("#algorithm_result").html(replaceEnter(stext));
+                $("#myModal").modal('show');
+               }
+            }
+          });
+        }
+        else{
+          alert("必须选择数据集");
+        }
+        
+      })      
+    }
+    function radio_click(){
+      $(".setsradio").click(function(){
+        sets_id=$(this).attr("id") ;
+        //console.log(sets_id);             
+      });
+    }
+      
+        
+   
+  
+    function NumberCheck(num) {
+      var str = num;
+      var len1 = str.substr(0, 1);
+      var len2 = str.substr(1, 1);
+      //如果第一位是0，第二位不是点，就用数字把点替换掉
+      if (str.length > 1 && len1 == 0 && len2 != ".") {
+        str = str.substr(1, 1);
+      }
+      //第一位不能是.
+      if (len1 == ".") {
+        str = "";
+      }
+      //限制只能输入一个小数点
+      if (str.indexOf(".") != -1) {
+        var str_ = str.substr(str.indexOf(".") + 1);
+        if (str_.indexOf(".") != -1) {
+          str = str.substr(0, str.indexOf(".") + str_.indexOf(".") + 1);
+        }
+      }
+      //正则替换，保留数字和小数点
+      str = str.replace(/[^\d^\.]+/g,'')
+      //如果需要保留小数点后两位，则用下面公式
+      str = str.replace(/\.\d\d\d$/,'');      
+      num1 = parseFloat(str)
+      if (num1>1){
+        str = "";
+      }
+      if (num1<0){
+        str="";
+      }
+      return str;
+    }
+  </script>
+{% endblock %}

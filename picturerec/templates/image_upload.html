@@ -1,0 +1,370 @@
+{% extends 'master.html' %}
+{% block title %}
+{{title}}
+{% endblock %}
+{% block contain %}  
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading" >
+          <h3 class="panel-title"> {{title}}</h3>
+        </div>
+        <div class="panel-body">
+            <div class="panel-heading" >
+                <h3 class="panel-title">算法信息</h3>
+              </div>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                  <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <td>
+                                数据集
+                            </td>
+                            <td>
+                                算法
+                            </td>
+                            <td>
+                                算法参数
+                            </td>
+                            <td>
+                                操作
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="info">
+                            <td>
+                                <label id="data_sets">{{set_id}}</label>
+                            </td>
+                            <td>
+                                <label id="algorithm">{{algo}}</label>
+                            </td>
+                            <td>
+                                <label id="al_para">{{alpara}}</label>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-info" id="btn_select">算法参数选择</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            <form method="post" enctype="multipart/form-data" >
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                <label>{{field.label}}</label> 
+                {{ field }}
+                <span style="color:red" class="erro_msg">{{field.errors.0}}</sapn>
+                </div>
+                {% endfor %}                
+               <button class="btn btn-info " type="submit" value="submit">上传</button>
+              </form>
+            
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="form-group">
+                <label for="compute_btn">&nbsp; &nbsp;图片列表&nbsp; &nbsp;  </label>
+                <button class="btn btn-info" id="compute_sel_all">&nbsp; &nbsp;全部选择&nbsp; &nbsp; </button>
+                <button class="btn btn-info" id="compute_sel_toglle">&nbsp; &nbsp;反向选择&nbsp; &nbsp;</button>
+                <button class="btn btn-info" id="compute_btn">&nbsp; &nbsp;开始计算&nbsp; &nbsp;</button>
+               
+            </div>
+          
+        </div>
+        <div class="panel-body">
+            <table class="table table-bordered">                       
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>ID</th>
+                    <th>文件名</th>                
+                    <th>图片</th>                
+                    <th>上传者</th>                
+                    <th>上传时间</th>
+                    <ht>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    
+                <div class="btn-group" data-toggle="buttons" id="pic_list">
+                  {% for obj in querySet%}
+                    <tr>
+                      <td>
+                          <input type="checkbox"  name="pic_list"  id="pic_{{obj.id}}"> </input>
+                      </td>
+                      <td scope="row">{{ obj.id }}</td>
+                      <td>{{ obj.file }}</td>
+                      <td><img src="/media/{{obj.file}}" style="height:100px"></img></td>               
+                      <td>{{ obj.upload_user}}</td>               
+                      <td>{{ obj.create_time|date:"Y年m月d日"}}</td>   
+                      <td>
+                        <a class="btn btn-danger btn-xs" href='/image/{{obj.id}}/delete/'>删除</a>
+                      </td>                               
+                    </tr>
+                  {% endfor %}
+                </div>
+                </tbody>
+              </table>
+        </div>
+      </div>
+       <!--计算结果对话框，不知道为什么放到这里好使，在外面不好使？？-->
+        <div class="modal fade" id="model2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog  modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">计算结果</h4>
+              </div>
+              <div class="modal-body">
+                  <p id="algorithm_result"></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>        
+              </div>
+            </div>
+          </div>
+        </div>
+
+    </div>
+    <!--模态对话框选择算法用-->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">算法参数选择</h4>
+          </div>
+          <div class="modal-body">
+              <div class="panel panel-default">
+                  <div class="panel-heading" >
+                      <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>样本集列表
+                  </div>
+                  <div class="panel-body">                    
+                      <table class="table table-bordered">                       
+                          <thead>
+                            <tr>
+                              <th>选择</th>
+                              <th>ID</th>
+                              <th>特征名</th>                
+                              <th>标签名</th>                
+                              <th>文件路径</th>                           
+                              <th>图片大小</th>    
+                              <th>描述</th>      
+                            </tr>
+                          </thead>
+                          <tbody>
+                          <div class="btn-group" data-toggle="buttons" >
+                            {% for obj in train_querySet%}
+                              <tr>
+                                <th> 
+                                    <input type="radio" name="options" id="{{ obj.id }}" class="setsradio" > </input>
+                                </th>
+                                <th scope="row">{{ obj.id }}</th>
+                                <td>{{ obj.featurename }}</td>
+                                <td>{{ obj.targetname }}</td>               
+                                <td>{{ obj.file }}</td>               
+                                <td>
+                                    {{ obj.imageheight }}*{{ obj.imagewidth }}
+                                </td>
+                                <td>
+                                  {{ obj.descreb }}             
+                                </td>
+                              </tr>
+                            {% endfor %}
+                          </div>
+                          </tbody>
+                        </table>
+                  </div>
+              </div>
+            
+              <div class="panel panel-default">
+                <div class="panel-heading">           
+                  <table width="100%">        
+                    <thead>
+                      <tr>
+                        <td>
+                          <label for="algorithms" class="control-label">算法选择:</label>
+                        </td>
+                        <td>
+                          &nbsp;&nbsp;
+                        </td>
+                          <td>
+                              <select class="combobox form-control " id="algorithms" >   
+                                {% for al in algorithms %}       
+                                <option value="{{al.1}}">{{al.0}}</option>                
+                                {% endfor %}
+                            </select>
+                          </td>
+                          <td>
+                            &nbsp;&nbsp;
+                          </td>
+                          <td>
+                            <label for="paramers" class="control-label">算法参数:</label>
+                          </td>
+                          <td>
+                            &nbsp;&nbsp;
+                          </td>
+                          <td>
+                            <input type="text" class="form-control" id="paramers" value="n_neighbors=5" >
+                          </td>
+                          </tr>
+                        </thead>
+                      </table>
+                    
+                </div>
+          </div>
+          <div class="modal-footer">              
+            <button type="button" class="btn btn-primary" id="ensure_al_btn">选择</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+   
+    
+
+</div>
+
+
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+    var sets_id; 
+    var sets_infor;
+    $(document).ready(function(){
+        btnSelectFunction();
+        radio_click();             
+        combox_click();
+        ensurebtn_click();
+        selectall_click();
+        antiselect_click();
+        comput_btn_click();
+       
+      });
+    //将字符串中回车符换成html回车符
+    function replaceEnter(str){
+        return str.replace(/\n|\r/g, '<br/>')
+    }
+
+    var ids=[];
+    //点击计算按钮，ajax传递参数
+    function comput_btn_click(){
+      $("#compute_btn").on({
+        "click":function(){
+          if(sets_id) {
+            ids=[]
+            $("input[name='pic_list']:checked").each(function(){ 
+              ids.push($(this).attr("id"));  
+             
+            });
+            if (ids.length>0){         
+
+              var delIds=ids.join(","); 
+              //console.log(delIds);
+              $.ajax({
+                url: "/image/recog/",
+                data: {
+                  sets_id: sets_id,              
+                  algorithms:$("#algorithms").find("option:selected").text(),
+                  algorithm_paras:$("#paramers").val(),
+                  pic_ids:delIds,
+                },
+                type: "GET",
+                dataType : "json",
+                success: function(result) {                
+                   if(result.status){
+                    stext=result.algorithm+"\n score:"+result.score
+                    //console.log(stext)
+
+                    $("#algorithm_result").html(replaceEnter(stext));
+                    $("#model2").modal('show');
+                   }
+                }
+              });
+            }
+            else{
+              
+              alert("必须选择图片")
+            }
+  
+  
+          
+          }
+          else{
+            alert("必须选择数据集")
+          }
+        
+        }
+      })
+    }
+  //反选图片列表
+    function antiselect_click(){
+      $("#compute_sel_toglle").on({
+        "click":function(){
+          $("input[name='pic_list']:checkbox").each(function(i,e){   
+            $(e).prop("checked",!$(e).prop("checked"));                 
+            
+         });
+        }
+      })
+    }
+    //点击选择算法选择弹窗的确认按钮，得到信息填入算法选择
+    function ensurebtn_click(){
+        $("#ensure_al_btn").on({
+            "click":function(){
+              if(sets_id){
+                $("#data_sets").html(sets_infor)
+                $("#al_para").html($("#paramers").val());                
+                $("#algorithm").html($("#algorithms").find("option:selected").text());
+                $("#myModal").modal("hide");
+              }
+              else{
+                alert("必须选择数据集")
+              }
+                
+            }
+        })
+    }
+    //点击全选按钮
+    function selectall_click(){
+      $("#compute_sel_all").on({
+        "click":function(){
+          $("input[name='pic_list']:checkbox").each(function(){ 
+           
+           $(":checkbox").prop("checked",true);
+         });
+          
+        }
+      })
+    }
+    //点击算法选择按钮，弹出算法选择弹窗
+    function btnSelectFunction(){
+       $("#btn_select").on({
+        "click":function(){
+            $("#myModal").modal("toggle");
+        }
+       })
+      }
+      //算法选择弹窗中算法不同，参数不同
+      function combox_click(){
+        $("#algorithms").on({        
+          "change":function(){                   
+            $("#paramers").val($(this).val());
+          },
+        })
+      }
+      //数据集选择弹窗中，数据集变更信息变更，方便填入窗口内容
+      function radio_click(){
+        $(".setsradio").click(function(){
+          sets_id=$(this).attr("id") ;
+          file=$(this).parent().next().next().next().next()
+          desc=file.next().next()
+          sets_infor=file.html()+"("+desc.html()+")";             
+        });
+      }
+</script>
+{% endblock %}

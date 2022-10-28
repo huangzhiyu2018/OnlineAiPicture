@@ -1,0 +1,49 @@
+
+{% extends 'master.html' %}
+{% block contain %}
+<div class="container">
+  <div style="margin-bottom: 10px;">
+    <a href="/image/uploadfile/" class="btn btn-success"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>图片识别</a>
+  </div>
+<div class="panel panel-default">
+    <div class="panel-heading" >
+        <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>识别结果
+    </div>
+    <div class="panel-body">
+    
+        <table class="table table-bordered">                       
+            <thead>
+              <tr>               
+                <th>ID</th>
+                <th>文件名</th>                
+                <th>图片</th>                
+                <th>上传者</th>                
+                <th>上传时间</th>
+                <th>识别结果</th>                
+                <th>计算时间</th>                
+              </tr>
+            </thead>
+            <tbody>              
+        
+              {% for obj in querySet%}
+                <tr>                
+                  <td scope="row">{{ obj.0 }}</td>
+                  <td>{{ obj.3 }}</td>
+                  <td><img src="/media/{{obj.3}}" style="height:100px"></img></td>               
+                  <td>{{ obj.2}}</td>               
+                  <td>{{ obj.1|date:"Y年m月d日"}}</td>   
+                  <td>{{ obj.4}}</td>               
+                  <td>{{ obj.5|date:"Y年m月d日"}}</td>   
+                  <!-- 不做删除处理了，因为可能把一个计算结果的所有图片信息进行删除
+                  <td>
+                    <a class="btn btn-danger btn-xs" href='/algorithm/{{obj.5}}/delete/'>删除</a>
+                  </td>                               
+                  -->
+                </tr>
+              {% endfor %}            
+            </tbody>
+          </table>
+    </div>
+  </div>
+</div>
+{% endblock %}  

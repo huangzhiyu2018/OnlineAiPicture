@@ -1,0 +1,48 @@
+{% extends 'master.html' %}
+{% block contain %}
+<div class="container">
+  <div style="margin-bottom: 10px;">
+    <a href="/picturerec/filelist/" class="btn btn-success"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>模式识别</a>
+  </div>
+<div class="panel panel-default">
+    <div class="panel-heading" >
+        <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>计算结果
+    </div>
+    <div class="panel-body">
+    
+        <table class="table table-bordered">                       
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>数据集</th>                
+                <th>算法</th>                
+                <th>参数</th>                
+                <th>图片</th>
+                <th>计算结果</th>
+                <th>操作者</th>
+                <th>计算时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for obj in querySet%}
+              <tr>
+                <th scope="row">{{ obj.id }}</th>
+                <td>{{ obj.datasets }}</td>
+                <td>{{ obj.algorithm }}</td>               
+                <td>{{ obj.paramers }}</td>               
+                <td>{{ obj.picture }}</td>               
+                <td>{{ obj.score }}</td>               
+                <td>{{ obj.user }}</td>               
+                <td>{{ obj.create_time |date:"Y年m月d日"}}</td>  
+                <td>
+                  <a class="btn btn-danger btn-xs" href='/algorithm/{{obj.id}}/delete/'>删除</a>
+                </td>               
+              </tr>
+             {% endfor %}
+            </tbody>
+          </table>
+    </div>
+  </div>
+</div>
+{% endblock %}  

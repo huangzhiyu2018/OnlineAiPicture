@@ -1,0 +1,29 @@
+
+{% extends 'master.html' %}
+{% block title %}
+{{title}}
+{% endblock %}
+{% block contain %}   
+<div class="container">
+<div class="panel panel-default">
+    <div class="panel-heading" >
+        <a class="btn btn-success"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>{{title}}</a>
+    </div>
+    <div class="panel-body">
+        <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{field.label}}</label> 
+            {{field}}
+            <span style="color:red">{{field.errors.0}}</sapn>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">提交</button>
+        </form>
+    </div>
+</div>
+</div>
+<!--%后 和  %前有空格-->
+{% endblock %}
+

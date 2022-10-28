@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/plugins/bootstrap-3.4.1-dist/css/bootstrap.css">
+
+    <title>登录</title>
+    <style>
+        .loginForm {
+              /*边框高度*/
+             height: 300px;
+            /*边框宽度*/
+            width: 500px;
+            /*边框颜色*/
+            border: #4d4d4d solid 1px;
+            /*边框圆角*/
+            border-radius: 4px;
+            /*阴影 水平方向，竖直方向，模糊距离*/
+            box-shadow: 5px 5px 5px #4d4d4d;
+            /*上边界距离*/
+            margin-top: 150px;
+            /*左边界距离：自动*/
+            margin-left: auto;
+            /*右边界距离：自动*/
+            margin-right: auto;
+            /*用户名、密码间距*/
+            padding: 20px 40px;
+        }
+
+        /*将用户登录置于中间*/
+        .loginForm h2 {
+            text-align: center;
+        }
+        
+        /*修改button属性*/
+        .button {
+            text-align: center;
+            vertical-align: middle;
+       
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="loginForm">
+            <h2>用户登录</h2>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                    <label>{{field.label}}</label>
+                     {{field}}
+                     <span style="color:red">{{field.errors.0}}</sapn>
+                </div>
+                {% endfor %}
+                
+                <div class="button">
+                    <input type="submit" class="btn btn-primary" value="登 录"/>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+</body>
+</html>
