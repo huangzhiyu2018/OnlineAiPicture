@@ -1,5 +1,6 @@
 from django.urls import path
-from picturerec.views import user,picture,algorithm
+from picturerec.views import user,picture,algorithm,echarts
+
 urlpatterns = [
     #对管理员的操作
     path("user/list/",user.user_list),
@@ -25,4 +26,10 @@ urlpatterns = [
     path("algorithm/test/",algorithm.test_compute),
     path("algorithm/list/",algorithm.result_list),
     path("algorithm/<int:uid>/delete/",algorithm.result_delete),
+
+     #绘制echarts
+    path("echarts/",echarts.echarts),
+    path("echarts/line/",echarts.echarts_line),
+    path("echarts/bar/",echarts.echarts_line),
+    path("echarts/pie/",echarts.echarts_pie),
 ]

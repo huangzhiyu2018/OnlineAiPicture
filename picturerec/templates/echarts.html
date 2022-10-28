@@ -1,0 +1,209 @@
+{% extends 'master.html' %}
+{% load static %}
+
+{% block contain %}
+<div class="container">
+<div style="margin-bottom:10px">
+  <!--栅格需要在容器内才有效-->
+  <div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      <button type="button" class="btn btn-primary" id="btn_line"><span class="glyphicon glyphicon-random"></span>显示线型图</button>
+      <button type="button" class="btn btn-default" id="btn_line_hide"><span class="glyphicon glyphicon-off"></span>隐藏线型图</button>
+    </div>
+    <div class="col-md-4">
+    <button type="button" class="btn btn-primary" id="btn_bar"><span class="glyphicon glyphicon-signal"></span> 显示柱状图</button>
+    </div>
+    <div class="col-md-4">
+    <button type="button" class="btn btn-primary" id="btn_pie"><span class="glyphicon glyphicon-adjust"></span>显示饼状图</button>
+    </div>
+  </div>
+  </div>
+</div>
+</div>
+<div class="container">
+  <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+            曲线     </h3>
+      </div>
+      <div class="panel-body">
+        <div id="line" style="width: 100%;height:300px">
+
+        </div>
+      </div>
+  </div>
+  <div class='row'>
+    <div class="col-xs-8">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">
+              柱状图     </h3>
+        </div>
+        <div class="panel-body">
+          <div id="bar" style="width: 100%;height:300px">
+    
+          </div>
+        </div>
+      </div>
+    </div>      
+    <div class="col-xs-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">
+              饼图     </h3>
+        </div>
+        <div class="panel-body">
+          <div id="pie" style="width: 100%;height:300px">
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>  
+    
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'js/echarts.min.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+       $("#btn_line").click(function(){
+        drawLineFunction()
+       }) ,
+       $("#btn_line_hide").click(function(){
+        hideLine()
+       }),
+       $("#btn_bar").click(function(){
+        drawBarFunction()
+       }),
+       $("#btn_pie").click(function(){
+        drawPieFunction()
+       })
+
+       }
+    )
+
+    function drawPieFunction(){
+
+      var myChart = echarts.init(document.getElementById('pie'));
+      var option={
+        series : [
+            {
+                name: '',
+                type: 'pie',    // 设置图表类型为饼图
+                radius: '55%',  // 饼图的半径，外半径为可视区尺寸（容器高宽中较小一项）的 55% 长度。
+                data:[]
+            }
+        ]
+    };
+
+    $.ajax({
+      url:"/echarts/pie/",
+      type:"get",
+      dataType:"JSON",
+      success:function(res){
+       
+        if (res.status){                   
+          option.series[0].data=res.data.series;
+           // 使用刚指定的配置项和数据显示图表。
+           myChart.setOption(option);
+        }
+      }
+    })
+    }
+    function drawBarFunction(){
+    var myChart = echarts.init(document.getElementById('bar'));
+    // 指定图表的配置项和数据
+    var option = {
+      title: {
+        text: ''
+      },
+      tooltip: {},
+      legend: {
+        data: ['']
+      },
+      xAxis: {
+        data: []
+      },
+      yAxis: {},
+      series: [
+        {
+          name: '',
+          type: 'bar',
+          data: []
+        }
+      ]
+    };
+
+    $.ajax({
+      url:"/echarts/line/",
+      type:"get",
+      dataType:"JSON",
+      success:function(res){
+       
+        if (res.status){           
+          option.title.text=res.data.title;
+          option.legend.data=res.data.legend;
+          option.xAxis.data=res.data.xAxis;
+          option.series[0].data=res.data.series[0];
+           // 使用刚指定的配置项和数据显示图表。
+           myChart.setOption(option);
+        }
+      }
+    })
+
+    }
+    function hideLine(){
+      var myChart = echarts.init(document.getElementById('line'));
+      myChart.clear();
+    }
+    function drawLineFunction(){
+      var myChart = echarts.init(document.getElementById('line'));
+  
+      // 指定图表的配置项和数据
+      var option = {
+        title: {
+          text: ''
+        },
+        tooltip: {},
+        legend: {
+          data: []
+        },
+        xAxis: {
+          data: []
+        },
+        yAxis: {},
+        series: [
+          {
+            name: '',
+            type: 'line',
+            data: []
+          }
+        ]
+      };
+     
+      $.ajax({
+        url:"/echarts/line/",
+        type:"get",
+        dataType:"JSON",
+        success:function(res){
+         
+          if (res.status){           
+            option.title.text=res.data.title;
+            option.legend.data=res.data.legend;
+            option.xAxis.data=res.data.xAxis;
+            option.series[0].data=res.data.series[0];
+             // 使用刚指定的配置项和数据显示图表。
+             myChart.setOption(option);
+          }
+        }
+      })
+     
+  
+      }
+    
+</script>
+{% endblock %}

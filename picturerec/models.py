@@ -56,3 +56,23 @@ class RecogResult(models.Model):
     picture=models.CharField(max_length=125,verbose_name='图片ID列表',default="")
     user=models.CharField(max_length=30,verbose_name='操作者',default="")
     create_time = models.DateField(verbose_name='计算时间',default=None,null=True,blank=True)
+
+class StudentsInfor(models.Model):
+    '''
+    学生信息表
+    '''
+    name = models.CharField(max_length=30,verbose_name='姓名')
+    age = models.IntegerField(verbose_name='年龄')
+    #有类别
+    gender_choice = ((0, "男"), (1, "女"))
+    
+    gender = models.SmallIntegerField(choices=gender_choice,verbose_name='性别')
+    
+    create_time = models.DateField(verbose_name='产生时间')
+    #如果教室被删除那么置空
+    #room= models.ForeignKey(to="ClassRoom",to_field='id',on_delete=models.SET_NULL,null=True,blank=True,verbose='教室id')
+    #删除置空,默认还添加一个_id
+    #注意这里与PPT不一致，我修改了，修改方法是先删除，然后再加入
+    #inclass= models.ForeignKey(to="classinfor",to_field='id',on_delete=models.SET_NULL,null=True,blank=True,verbose_name='班级',default=None)
+    #如果新加列设置默认值
+    score=models.DecimalField(max_digits=10,decimal_places=2,default=0)
