@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 样式部分可以忽略 -->
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        div {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn {
+            width: 100px;
+            height: 50px;
+            border-radius: 10px;
+            background: #ff9900;
+            line-height: 50px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 0 10px #999;
+        }
+        video, canvas {
+            width: 300px;
+            height: 300px;
+            border: 5px solid #000;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div id="play" class="btn">开启摄像</div>
+        <div id="take" class="btn">拍照</div>
+        <video id="video"></video>
+        <!-- 尽量在canvas标签上设置宽高 -->
+        <canvas id="canvas" width="300px" height="300px"></canvas>
+    </div>
+    <script>
+        // 开启摄像
+        document.getElementById('play').onclick = () => {
+            let constraints = {
+                // video属性设置
+                video: {
+                    width: 300,
+                    height: 300
+                },
+                // audio属性设置
+                audio: true
+            }
+            navigator.mediaDevices.getUserMedia(constraints)
+            .then(mediaStream => {
+                // 成功返回promise对象，接收一个mediaStream参数与video标签进行对接
+                document.getElementById('video').srcObject = mediaStream
+                document.getElementById('video').play()
+            })
+            // 失败就失败了
+        }
+        // 拍照、canvas绘制
+        document.getElementById('take').onclick = () => {
+            let ctx = document.getElementById("canvas").getContext('2d')
+            ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)
+        }
+    </script>
+</body>
+</html>

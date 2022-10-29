@@ -1,5 +1,5 @@
 from django.urls import path
-from picturerec.views import user,picture,algorithm,echarts
+from picturerec.views import user,picture,algorithm,echarts,faceregcon
 
 urlpatterns = [
     #对管理员的操作
@@ -32,4 +32,7 @@ urlpatterns = [
     path("echarts/line/",echarts.echarts_line),
     path("echarts/bar/",echarts.echarts_line),
     path("echarts/pie/",echarts.echarts_pie),
+    
+    #在线人物识别
+    path("facerecon/scrap/",faceregcon.scrapy_image),
 ]
