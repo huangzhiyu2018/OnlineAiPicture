@@ -39,7 +39,7 @@
                         <form method="post" novalidate id="controlform" enctype="multipart/form-data">
                             <div class="form-group">                        
                                 <label class="col-sm-2" for="person_name">人物姓名</label>
-                                <input type="text" class="col-md-2"  id="person_name" placeholder="Tom" >                                                   
+                                <input type="text" class="col-md-2"  id="person_name" placeholder="Tom" value="Tom" >                                                   
                             </div>
                             
                         </form>
@@ -47,6 +47,8 @@
                             <input id="take" class="btn btn-success" value="拍照"></input>
                             <input id="upload" class="btn btn-info" value="采集"></input>                            
                         </div>
+                        <img src="#" style="height:100px">
+                        </img>
                     </div>
                   </div>
                
@@ -99,31 +101,62 @@
         ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)        
     }
    }
+    
+   function dataURItoBlob(base64Data) {
+        var byteString;
+        if (base64Data.split(',')[0].indexOf('base64') >= 0)
+            byteString = atob(base64Data.split(',')[1]);
+        else
+            byteString = unescape(base64Data.split(',')[1]);
+        var mimeString = base64Data.split(',')[0].split(':')[1].split(';')[0];
+        var ia = new Uint8Array(byteString.length);
+        for (var i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ia], {type: mimeString});
+    };
+
+    //将blob转换为file
+    function blobToFile(theBlob, fileName) {
+        theBlob.lastModifiedDate = new Date();
+        theBlob.name = fileName;
+        return theBlob;
+    };
 
    function uploadfunction(){
     $("#upload").on({
         "click":function(){  
             canvas = document.getElementById('canvas');
             //.substring(23)
-            let blob = canvas.toDataURL("image/jpeg");
+            //let blob = canvas.toDataURL("image/jpeg").substring(23);
             //写入到文件
             var personName=$("#person_name").val();
-            let file = new File([blob], personName+'.jpg', {type: 'image/jpeg'});
+
+            //let file = new File([blob], personName+'.jpg', {type: 'image/jpeg'});
             //利用FormData进行传值
             var form = document.getElementById("controlform");
+
+            //生成图片格式base64包括：jpg、png格式
+            var base64Data = canvas.toDataURL("image/jpeg", 1.0);
+            //封装blob对象
+            var blob = dataURItoBlob(base64Data);
+
+            var file = blobToFile(blob, personName);
+
+
           // 用表单来初始化
             var formdata = new FormData(form);           
             formdata.append("person_name",personName);
             //必须是file字段的添加
-            formdata.append("file",file);   
+            formdata.append("file",blob,personName+".jpg");   
+            //formdata.append("name",personName);   
+            //formdata.append("filedata",blob)
             //console.log(formdata)       
             //没有问题            
             $.ajax({
                 url: "/facerecon/scrap/",
                 type:"post",
-                data:formdata,
-                dataType : "json",
-                cache: false,//上传文件无需缓存
+                data:formdata, 
                 processData: false,//用于对data参数进行序列化处理 这里必须false
                 contentType: false, //必须
                 success:function(res){
