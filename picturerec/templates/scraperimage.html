@@ -1,29 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- 样式部分可以忽略 -->
+{% extends 'master.html' %}
+
+{% block css %} 
     <style>
-        * {
-            padding: 0;
-            margin: 0;
-        }
-        div {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .btn {
-            width: 100px;
-            height: 50px;
-            border-radius: 10px;
-            background: #ff9900;
-            line-height: 50px;
-            text-align: center;
-            color: #fff;
-            box-shadow: 0 0 10px #999;
-        }
+      
+
         video, canvas {
             width: 300px;
             height: 300px;
@@ -32,16 +12,66 @@
             margin-left: 5px;
         }
     </style>
-</head>
-<body>
-    <div>
-        <div id="play" class="btn">开启摄像</div>
-        <div id="take" class="btn">拍照</div>
-        <video id="video"></video>
-        <!-- 尽量在canvas标签上设置宽高 -->
-        <canvas id="canvas" width="300px" height="300px"></canvas>
+{% endblock %}
+{% block contain %}
+<div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">采集人脸图像</h3>
     </div>
-    <script>
+    <div class="panel-body">
+        <div class="row" style="margin:10px 10px">
+            <div class="col-xs-6 col-md-6">
+                <div>                    
+                  <video id="video" ></video>
+                </div>
+                <!-- 尽量在canvas标签上设置宽高 -->
+                <canvas id="canvas" width="300px" height="300px"></canvas>
+            </div>
+            <div class="col-xs-6 col-md-6">
+                <div class="panel panel-default" style="margin:10px 10px">
+                    <div class="panel-heading">
+                      <h3 class="panel-title">控制面板</h3>
+                    </div>
+                    <div class="panel-body" style="margin:10px 10px">
+                        <div class="row">
+                            <button id="play" class="btn btn-success" >开启摄像</button>
+                        </div>
+                        <form method="post" novalidate id="controlform" enctype="multipart/form-data">
+                            <div class="form-group">                        
+                                <label class="col-sm-2" for="person_name">人物姓名</label>
+                                <input type="text" class="col-md-2"  id="person_name" placeholder="Tom" >                                                   
+                            </div>
+                            
+                        </form>
+                        <div class="form-group">                            
+                            <input id="take" class="btn btn-success" value="拍照"></input>
+                            <input id="upload" class="btn btn-info" value="采集"></input>                            
+                        </div>
+                    </div>
+                  </div>
+               
+            </div>
+            
+        </div>
+      
+    </div>
+    <div class="panel-footer">
+        <p class="list-group-item-text" id="pic_result"></p>
+    </div>
+
+  </div>
+    
+  
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+    $(document).ready(function(){
+        playfunction();
+        photofunction();
+        uploadfunction();
+       
+    })
+    function playfunction(){
         // 开启摄像
         document.getElementById('play').onclick = () => {
             let constraints = {
@@ -51,7 +81,7 @@
                     height: 300
                 },
                 // audio属性设置
-                audio: true
+                audio: false
             }
             navigator.mediaDevices.getUserMedia(constraints)
             .then(mediaStream => {
@@ -61,11 +91,59 @@
             })
             // 失败就失败了
         }
-        // 拍照、canvas绘制
+    }
+   function photofunction(){
+    // 拍照、canvas绘制
         document.getElementById('take').onclick = () => {
-            let ctx = document.getElementById("canvas").getContext('2d')
-            ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)
-        }
-    </script>
-</body>
-</html>
+        let ctx = document.getElementById("canvas").getContext('2d')
+        ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)        
+    }
+   }
+
+   function uploadfunction(){
+    $("#upload").on({
+        "click":function(){  
+            canvas = document.getElementById('canvas');
+            //.substring(23)
+            let blob = canvas.toDataURL("image/jpeg");
+            //写入到文件
+            var personName=$("#person_name").val();
+            let file = new File([blob], personName+'.jpg', {type: 'image/jpeg'});
+            //利用FormData进行传值
+            var form = document.getElementById("controlform");
+          // 用表单来初始化
+            var formdata = new FormData(form);           
+            formdata.append("person_name",personName);
+            //必须是file字段的添加
+            formdata.append("file",file);   
+            //console.log(formdata)       
+            //没有问题            
+            $.ajax({
+                url: "/facerecon/scrap/",
+                type:"post",
+                data:formdata,
+                dataType : "json",
+                cache: false,//上传文件无需缓存
+                processData: false,//用于对data参数进行序列化处理 这里必须false
+                contentType: false, //必须
+                success:function(res){
+                  if(res.status){
+                    $("#pic_result").html("文件:"+res.path+"上传成功！")
+                   
+                  }else{                    
+                    console.log(res.errors)
+                  }
+
+                }
+      
+              }
+              )
+             
+           
+        },
+    })    
+   }
+   
+    
+</script>
+{% endblock %}

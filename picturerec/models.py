@@ -76,3 +76,21 @@ class StudentsInfor(models.Model):
     #inclass= models.ForeignKey(to="classinfor",to_field='id',on_delete=models.SET_NULL,null=True,blank=True,verbose_name='班级',default=None)
     #如果新加列设置默认值
     score=models.DecimalField(max_digits=10,decimal_places=2,default=0)
+class PersonInfor(models.Model):
+    """动态上传人员信息表
+
+    Args:
+        models (_type_): _description_
+    """       
+    #上传的文件路径，在persons路径
+    file=models.FileField(verbose_name="文件",max_length=125,upload_to="persons/",default="")  
+    #图片对应的人名
+    person_name=models.CharField(max_length=30,verbose_name='姓名',default="Tom")
+    #上传时间
+    create_time = models.DateField(verbose_name='上传时间')
+    #采集者
+    upload_user=models.CharField(max_length=30,verbose_name='上传者')
+    #显示信息用
+    def __str__(self):
+        return f"姓名：{self.person_name} 文件：{self.file}"
+    
