@@ -60,47 +60,41 @@ def scrapy_image(request):
         #return render(request,"scraperimage.html",{"status":True})
     
     return render(request,"scraperimage.html")
+def face_recon(request):
+    """人脸识别
 
-def face_test(request):
-    querySet = models.PersonInfor.objects.all()       
-    #取出第一个进行测试
-    first=querySet[0]
-    absolute_file_path = os.path.join('media',first.file.name)
-    #得到人脸信息
-    rects,image=dlibcompute.find_person_rect(absolute_file_path)
-    print(rects)
+    Args:
+        request (_type_): _description_
+    """
+    querySet = models.PersonInfor.objects.all() 
+    return render(request,"personrecon.html",{"querySet":querySet})
+
+def face_list(request):    
+    querySet = models.PersonInfor.objects.all() 
     return render(request,"personlist.html",{"querySet":querySet})
 
-# def handle_uploaded_file(file,personName):
-#     '''
-#     保存数据文件
-#     '''
+def face_delete(request):
+    """通过ajax删除人脸信息
 
-#     file_data = file.read()
-#     #查看下数据信息
-#     print(type(file_data))
-    
-#     # img_data = file_data.strip().split(",")[-1]
-#     img = base64.b64decode(file_data)
-    
-#     ext = "jpg"
-#     file_name = '{}.{}'.format(uuid.uuid4().hex[:10], ext)
+    Args:
+        request (_type_): _description_
 
-#     # file path relative to 'media' folder
-#     #file_path = os.path.join('files', file_name)
-#     #存入的文件名
-#     database_folder=os.path.join("persons",personName, file_name)
-#     #写入的文件名
-#     absolute_file_path = os.path.join('media',database_folder )
-#     #检查路径是否存在
-#     directory = os.path.dirname(absolute_file_path)
-#     if not os.path.exists(directory):
-#         os.makedirs(directory)    
-#     #写入数据
-#     with open(absolute_file_path, 'wb+') as destination:
-#         destination.write(img)
+    Returns:
+        _type_: _description_
+    """
+    uid=request.GET.get("uid")
     
-#     return database_folder
+    file=models.PersonInfor.objects.filter(id=uid).first()  
+    
+    #得到图片真实绝对路径
+    absolute_file_path = os.path.join('media', str(file.file))
+    #print(absolute_file_path)
+    if os.path.exists(absolute_file_path):
+        os.remove(absolute_file_path)
+    else:
+        print("file not exist")
+    models.PersonInfor.objects.filter(id=uid).delete()
+    return JsonResponse({"status": True})
 
 class PersonInforModelForm(BootrapModelForm):
     """针对上传人物图片的模型

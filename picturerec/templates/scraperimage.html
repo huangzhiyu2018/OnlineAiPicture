@@ -13,65 +13,78 @@
     </style>
 {% endblock %}
 {% block contain %}
-<div class="panel panel-primary">
-    <div class="panel-heading">
-      <h3 class="panel-title">采集人脸图像</h3>
-    </div>
-    <div class="panel-body">
-        <div class="row" style="margin:10px 10px">
-            <div class="col-xs-6 col-md-6">
-                <div>                    
-                  <video id="video" ></video>
-                </div>
-                <!-- 尽量在canvas标签上设置宽高 -->
-                <canvas id="canvas" width="300px" height="300px"></canvas>
-            </div>
-            <div class="col-xs-6 col-md-6">
-                <div class="panel panel-default" style="margin:10px 10px">
-                    <div class="panel-heading">
-                      <h3 class="panel-title">控制面板</h3>
-                    </div>
-                    <div class="panel-body" style="margin:10px 10px">
-                        <div class="row">
-                            <button id="play" class="btn btn-success" >开启摄像</button>
-                        </div>
-                        <form method="post" novalidate id="controlform" enctype="multipart/form-data">
-                            <div class="form-group">                        
-                                <label class="col-sm-2" for="person_name">人物姓名</label>
-                                <input type="text" class="col-md-2"  id="person_name" placeholder="Tom" value="Tom" >                                                   
-                            </div>
-                            
-                        </form>
-                        <div class="form-group">                            
-                            <input id="take" class="btn btn-success" value="拍照"></input>
-                            <input id="upload" class="btn btn-info" value="采集"></input>  
-                           
-                        </div>
-                        
-                    </div>
-                </div>
-               <!--加上一个处理结果显示情况-->
-               <div class="panel panel-default" style="margin:10px 10px">
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h3 class="panel-title">采集人脸图像</h3>
+        </div>
+        <div class="panel-body" >
+            <div class="panel panel-default" style="margin:10px 10px">
                 <div class="panel-heading">
-                  <h3 class="panel-title">识别结果</h3>
+                  <h3 class="panel-title">采集面部</h3>
                 </div>
-                <div class="panel-body" style="margin:10px 10px">
-                  <img style="100px" id="img_result"></img>
+                <div class="panel-body">
+                    <div class="col-md-6">                    
+                        <video id="video" ></video>
+                     </div>
+                     <!-- 尽量在canvas标签上设置宽高 -->
+                     <div class="col-md-6">
+                       <canvas id="canvas" width="300px" height="300px"></canvas>
+                     </div> 
                 </div>
-              </div>
-
             </div>
             
+             <div class="col-md-6">   
+                    <div class="panel panel-default" style="margin:10px 10px"  height="300px">
+                        <div class="panel-heading">
+                           <h3 class="panel-title">控制面板</h3>
+                        </div>
+                        <div class="panel-body" style="margin:10px 10px">
+                            
+                           <button id="play" class="btn btn-success" >开启摄像</button>
+                         
+                            <form method="post" novalidate id="controlform" enctype="multipart/form-data">
+                                <div class="form-group">                        
+                                    <label class="col-sm-2" for="person_name">人物姓名：</label>
+                                    <input type="text" class="col-sm-2"  id="person_name" placeholder="Tom" value="Tom" >                                                   
+                                </div>
+                                <div class="form-group">                            
+                                    <input id="take" class="btn btn-success col-sm-2" value="拍照"></input>
+                                    <input id="upload" class="btn btn-info col-sm-2" value="采集"></input>                              
+                                </div>
+                            </form>
+                           
+                            
+                        </div>
+                    </div>
+                
+                </div>
 
+                <!--加上一个处理结果显示情况-->
+                <div class="col-md-6">   
+                    <div class="panel panel-default" style="margin:10px 10px">
+                        <div class="panel-heading">
+                        <h3 class="panel-title">采集结果</h3>
+                        </div>
+                        <div class="panel-body" style="margin:10px 10px">
+                        <img style="height:300px" id="img_result"></img>
+                        </div>
+                    </div>
+                </div>
+
+              
+                
+
+            </div>
+        
         </div>
-      
-    </div>
-    <div class="panel-footer">
-        <p class="list-group-item-text" id="pic_result"></p>
-    </div>
+        <div class="panel-footer">
+            <p class="list-group-item-text" id="pic_result"></p>
+            <a href="/facerecon/list/" style="align:right">采集结果列表 </a>
+        </div>
 
-  </div>
-    
+    </div>
+</div>   
   
 {% endblock %}
 {% block js %}
@@ -114,6 +127,7 @@
                         let ctx = document.getElementById("canvas").getContext('2d')
                         ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)        
                         click_scrap=1;
+                        $("#img_result").removeAttr("src");
                     }else{
                         alert("请点击开始摄像按钮");
                     }
@@ -187,7 +201,7 @@
                             valide="图片有效"
                         }
                         $("#pic_result").html("文件:"+res.path+"上传成功！<br>"+valide)
-                        console.log(res.path)
+                        //console.log(res.path)
                         $("#img_result").attr("src","/media/"+res.path)
                       }else{                    
                         console.log(res.errors)

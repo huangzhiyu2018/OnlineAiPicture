@@ -96,4 +96,14 @@ class PersonInfor(models.Model):
     #显示信息用
     def __str__(self):
         return f"姓名：{self.person_name} 文件：{self.file}"
+class PersonLandmarks(models.Model):
+    """
+    保存图片的数据识别信息，基于dlib_face_recognition_resnet_model_v1.dat模型的128维数据
+    """    
+    #人物图片id，图片删除，信息级联删除
+    file= models.ForeignKey(to="PersonInfor",to_field='id',on_delete=models.CASCADE,null=True,blank=True,verbose_name='人物图片id',default=None)
+    rects=models.CharField(max_length=125,verbose_name='面部位置')
+    landmarks=models.TextField(verbose_name='面部标注')
+    #每个rect对应一个面部描述，由dlib_face_recognition_resnet_model_v1.dat模型获得
+    descriptions=models.TextField(verbose_name='面部描述')
     

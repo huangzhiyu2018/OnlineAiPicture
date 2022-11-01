@@ -39,12 +39,12 @@ def img_delete(request,uid):
     file=models.UploadFileRecord.objects.filter(id=uid).first()    
   
     absolute_file_path = os.path.join('media', str(file))
-    print(absolute_file_path)
+    #print(absolute_file_path)
     if os.path.exists(absolute_file_path):
         os.remove(absolute_file_path)
     else:
         print("file not exist")
-    obj=models.UploadFileRecord.objects.filter(id=uid).delete()
+    models.UploadFileRecord.objects.filter(id=uid).delete()
     return redirect("/image/uploadfile/")
 def img_upload(request):
     '''

@@ -35,5 +35,7 @@ urlpatterns = [
     
     #在线人物识别
     path("facerecon/scrap/",faceregcon.scrapy_image),
-    path("facerecon/test/",faceregcon.face_test),
+    path("facerecon/list/",faceregcon.face_list),
+    path("facerecon/recon/",faceregcon.face_recon),
+    path("facerecon/delete/",faceregcon.face_delete),
 ]

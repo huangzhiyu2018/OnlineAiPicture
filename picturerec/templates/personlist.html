@@ -2,7 +2,7 @@
 {% block contain %}
 <div class="container">
   <div style="margin-bottom: 10px;">
-    <a href="/picturerec/filelist/" class="btn btn-success"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>模式识别</a>
+    <a href="/facerecon/scrap/" class="btn btn-success"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>人脸采集</a>
   </div>
 <div class="panel panel-default">
     <div class="panel-heading" >
@@ -17,7 +17,8 @@
                 <th姓名</th>                
                 <th>图片</th>                
                 <th>操作者</th>
-                <th>计算时间</th>
+                <th>上传时间</th>
+                <th>是否有效</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -26,10 +27,11 @@
               <tr>
                 <th scope="row">{{ obj.id }}</th>
                 <td><img src="/media/{{obj.file}}" style="height:100px"></img></td>  
-                <td>{{ obj.user }}</td>               
+                <td>{{ obj.upload_user }}</td>               
                 <td>{{ obj.create_time |date:"Y年m月d日"}}</td>  
+                <td>{{ obj.get_isvalide_display }}</td> 
                 <td>
-                  <a class="btn btn-danger btn-xs" href='/facerecon/{{obj.id}}/delete/'>删除</a>
+                  <input type="button"  class="btn btn-danger btn-xs btn_delete" uid="{{obj.id}}" value="删除">
                 </td>               
               </tr>
              {% endfor %}
@@ -37,5 +39,61 @@
           </table>
     </div>
   </div>
+  <!--弹出删除框-->
+<div class="modal fade" id="alert" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="alert alert-danger alert-dismissible fade in" role="alert">      
+      <h4>是否确定删除</h4>
+      <p style="margin:10px 0px">
+        删除后不可恢复
+      </p>
+      <p style="text-align:right">
+        <button type="button" class="btn btn-danger" id="ensure_btn">确定</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+      </p>
+    </div>
+  </div>
+</div>
+
 </div>
 {% endblock %}  
+{% block js %}
+<script type="text/javascript">
+  var user_id;
+  $(document).ready(function(){
+    deleteclickfunction();
+    ensureclickFunction();
+  })
+  function deleteclickfunction(){
+    $(".btn_delete").on({        
+      "click":function(){          
+        user_id=$(this).attr("uid");          
+        $("#alert").modal("show");
+      },
+    })
+}
+function ensureclickFunction(){
+  $("#ensure_btn").on({
+    "click":function(){
+      $.ajax({
+        url: "/facerecon/delete/",
+        type:"get",
+        data:{
+          uid:user_id
+        },
+        dataType : "json",
+        success:function(res){
+          if(res.status){
+            user_id=0;
+            $("#alert").modal("hide") ;
+            location.reload();
+          }
+        }
+
+      }
+      )
+    },
+  })
+}
+</script>
+{% endblock %}
