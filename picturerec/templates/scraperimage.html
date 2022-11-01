@@ -1,8 +1,7 @@
 {% extends 'master.html' %}
 
 {% block css %} 
-    <style>
-      
+    <style>     
 
         video, canvas {
             width: 300px;
@@ -45,15 +44,25 @@
                         </form>
                         <div class="form-group">                            
                             <input id="take" class="btn btn-success" value="拍照"></input>
-                            <input id="upload" class="btn btn-info" value="采集"></input>                            
+                            <input id="upload" class="btn btn-info" value="采集"></input>  
+                           
                         </div>
-                        <img src="#" style="height:100px">
-                        </img>
+                        
                     </div>
-                  </div>
-               
+                </div>
+               <!--加上一个处理结果显示情况-->
+               <div class="panel panel-default" style="margin:10px 10px">
+                <div class="panel-heading">
+                  <h3 class="panel-title">识别结果</h3>
+                </div>
+                <div class="panel-body" style="margin:10px 10px">
+                  <img style="100px" id="img_result"></img>
+                </div>
+              </div>
+
             </div>
             
+
         </div>
       
     </div>
@@ -67,12 +76,14 @@
 {% endblock %}
 {% block js %}
 <script type="text/javascript">
+    var click_start_vedio=0;
+    var click_scrap=0;
     $(document).ready(function(){
         playfunction();
         photofunction();
-        uploadfunction();
-       
+        uploadfunction();       
     })
+
     function playfunction(){
         // 开启摄像
         document.getElementById('play').onclick = () => {
@@ -90,16 +101,25 @@
                 // 成功返回promise对象，接收一个mediaStream参数与video标签进行对接
                 document.getElementById('video').srcObject = mediaStream
                 document.getElementById('video').play()
+                click_start_vedio=1;//记录开启视频
             })
             // 失败就失败了
         }
     }
    function photofunction(){
     // 拍照、canvas绘制
-        document.getElementById('take').onclick = () => {
-        let ctx = document.getElementById("canvas").getContext('2d')
-        ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)        
-    }
+        
+                document.getElementById('take').onclick = () => {
+                    if (click_start_vedio==1){
+                        let ctx = document.getElementById("canvas").getContext('2d')
+                        ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)        
+                        click_scrap=1;
+                    }else{
+                        alert("请点击开始摄像按钮");
+                    }
+                
+             } 
+        
    }
     
    function dataURItoBlob(base64Data) {
@@ -126,51 +146,68 @@
    function uploadfunction(){
     $("#upload").on({
         "click":function(){  
-            canvas = document.getElementById('canvas');
-            //.substring(23)
-            //let blob = canvas.toDataURL("image/jpeg").substring(23);
-            //写入到文件
+            if(click_start_vedio==0){
+                alert("首先点击开启摄像，然后点击拍照");
+                return;
+            }
             var personName=$("#person_name").val();
-
-            //let file = new File([blob], personName+'.jpg', {type: 'image/jpeg'});
-            //利用FormData进行传值
-            var form = document.getElementById("controlform");
-
-            //生成图片格式base64包括：jpg、png格式
-            var base64Data = canvas.toDataURL("image/jpeg", 1.0);
-            //封装blob对象
-            var blob = dataURItoBlob(base64Data);
-
-            var file = blobToFile(blob, personName);
-
-
-          // 用表单来初始化
-            var formdata = new FormData(form);           
-            formdata.append("person_name",personName);
-            //必须是file字段的添加
-            formdata.append("file",blob,personName+".jpg");   
-            //formdata.append("name",personName);   
-            //formdata.append("filedata",blob)
-            //console.log(formdata)       
-            //没有问题            
-            $.ajax({
-                url: "/facerecon/scrap/",
-                type:"post",
-                data:formdata, 
-                processData: false,//用于对data参数进行序列化处理 这里必须false
-                contentType: false, //必须
-                success:function(res){
-                  if(res.status){
-                    $("#pic_result").html("文件:"+res.path+"上传成功！")
-                   
-                  }else{                    
-                    console.log(res.errors)
+            if (personName){
+                if(click_scrap==1){
+                click_scrap=0
+                canvas = document.getElementById('canvas');
+                    
+                //生成图片格式base64包括：jpg、png格式
+                var base64Data = canvas.toDataURL("image/jpeg", 1.0);
+                
+                //封装blob对象
+                var blob = dataURItoBlob(base64Data);
+    
+                var file = blobToFile(blob, personName);
+    
+                //利用FormData进行传值
+                var form = document.getElementById("controlform");
+                
+              // 用表单来初始化
+                var formdata = new FormData(form);           
+                formdata.append("person_name",personName);
+                //必须是file字段的添加
+                formdata.append("file",blob,personName+".jpg");   
+                    
+                //没有问题            
+                $.ajax({
+                    url: "/facerecon/scrap/",
+                    type:"post",
+                    data:formdata, 
+                    processData: false,//用于对data参数进行序列化处理 这里必须false
+                    contentType: false, //必须
+                    success:function(res){
+                      if(res.status){
+                        var valide="图片中没有脸部信息"
+                        if (res.valide){
+                            valide="图片有效"
+                        }
+                        $("#pic_result").html("文件:"+res.path+"上传成功！<br>"+valide)
+                        console.log(res.path)
+                        $("#img_result").attr("src","/media/"+res.path)
+                      }else{                    
+                        console.log(res.errors)
+                      }
+    
+                    }
+          
                   }
+                  )
 
+                }else{
+                    alert("必须点击拍照！");
                 }
-      
-              }
-              )
+
+
+                
+
+            }else{
+                alert("必须输入姓名")
+            }          
              
            
         },

@@ -85,11 +85,14 @@ class PersonInfor(models.Model):
     #上传的文件路径，在persons路径
     file=models.FileField(verbose_name="文件",max_length=125,upload_to="persons/",default="")  
     #图片对应的人名
-    person_name=models.CharField(max_length=30,verbose_name='姓名',default="Tom")
+    person_name=models.CharField(max_length=30,verbose_name='姓名',default="Tom")    
     #上传时间
     create_time = models.DateField(verbose_name='上传时间')
     #采集者
     upload_user=models.CharField(max_length=30,verbose_name='上传者')
+    #是否是有效的人物图片，只有一张图片人脸的是有效的
+    valide_choice = ((0, "否"), (1, "是"))
+    isvalide=models.SmallIntegerField(choices=valide_choice,verbose_name="有效",default=0)
     #显示信息用
     def __str__(self):
         return f"姓名：{self.person_name} 文件：{self.file}"

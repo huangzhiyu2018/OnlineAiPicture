@@ -151,6 +151,7 @@ def capteryawn(detector,predictor):
     # Relase and distroy destroy All Windows
     cap.release()
     cv2.destroyAllWindows()
+
 if __name__ == '__main__':
 
     predictor = dlib.shape_predictor(PREDICTOR_PATH)
@@ -163,6 +164,6 @@ if __name__ == '__main__':
    # marke_one_face_image(predictor,detector,sFile,sStore)
 
     #capter yawn
-    capteryawn(detector,predictor)
+    #capteryawn(detector,predictor)
     
     
