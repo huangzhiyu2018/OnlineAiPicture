@@ -1,4 +1,38 @@
 {% extends 'scrapture.html' %}
+{% block table %}
+<div class="panel panel-default" style="margin:10px 10px">
+    <div class="panel-heading" >
+        <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>人物信息
+    </div>
+    <div class="panel-body">
+    
+        <table class="table table-bordered">                       
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th姓名</th>                
+                <th>图片</th>     
+                <th>姓名</th> 
+                <th>上传时间</th>
+                <th>是否有效</th>              
+              </tr>
+            </thead>
+            <tbody>
+            {% for obj in querySet%}
+              <tr>
+                <th scope="row">{{ obj.id }}</th>
+                <td><img src="/media/{{obj.file}}" style="height:100px"></img></td>  
+                <td>{{obj.person_name}}</td>                
+                <td>{{ obj.create_time |date:"Y年m月d日"}}</td>  
+                <td>{{ obj.get_isvalide_display }}</td> 
+                
+              </tr>
+             {% endfor %}
+            </tbody>
+          </table>
+    </div>
+  </div>
+{% endblock %}
 {% block exjs%}
 <script>
     $(document).ready(function(){
@@ -8,8 +42,13 @@
         initparams();     
     })
     function initparams(){
-        $("#input_person").hide()
-        ajaxurl="/facerecon/recon/"
+        show_result_alert=1;
+        $("#input_person").hide();
+        $("#input_person").val("test");//用测试的名字进行        
+        $("#result_panel").hide();
+        $("#footer").hide();
+        $("#upload").val("识别");
+        ajaxurl="/facerecon/recon/";
     }
 </script>
 {% endblock%}

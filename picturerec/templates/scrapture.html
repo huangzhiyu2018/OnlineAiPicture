@@ -33,14 +33,12 @@
             </div>
             
              <div class="col-md-6">   
-                    <div class="panel panel-default" style="margin:10px 10px"  height="300px">
+                    <div class="panel panel-default" >
                         <div class="panel-heading">
                            <h3 class="panel-title">控制面板</h3>
                         </div>
-                        <div class="panel-body" style="margin:10px 10px">
-                            
-                           <button id="play" class="btn btn-success" >开启摄像</button>
-                         
+                        <div class="panel-body" style="margin:10px 10px">                            
+                           <button id="play" class="btn btn-success" >开启摄像</button>                         
                             <form method="post" novalidate id="controlform" enctype="multipart/form-data">
                                 <div class="form-group" id="input_person">                        
                                     <label class="col-sm-2" for="person_name">人物姓名：</label>
@@ -74,11 +72,13 @@
             </div>        
         </div>
 
-        <div class="panel-footer">
+        <div class="panel-footer" id="footer">
             <p class="list-group-item-text" id="pic_result"></p>
             <a href="/facerecon/list/" style="align:right">采集结果列表 </a>
-        </div>
+        </div>       
     </div>
+    {% block table %}
+    {% endblock %}
 </div>   
   
 {% endblock %}
@@ -87,6 +87,7 @@
     var click_start_vedio=0;
     var click_scrap=0;
     var ajaxurl;
+    var show_result_alert=0;
 
     function playfunction(){
         // 开启摄像
@@ -97,7 +98,7 @@
                     width: 300,
                     height: 300
                 },
-                // audio属性设置
+                // audio属性设置，无声
                 audio: false
             }
             navigator.mediaDevices.getUserMedia(constraints)
@@ -193,6 +194,14 @@
                         $("#pic_result").html("文件:"+res.path+"上传成功！<br>"+valide)
                         //console.log(res.path)
                         $("#img_result").attr("src","/media/"+res.path)
+                        if (show_result_alert){
+                            if(res.valide)
+                            {
+                                alert("当前人物为："+res.person)
+                            }else{
+                                alert(valide);
+                            }
+                        }
                       }else{                    
                         console.log(res.errors)
                       }

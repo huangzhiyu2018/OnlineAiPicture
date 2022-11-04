@@ -161,7 +161,7 @@ if __name__ == '__main__':
     #face detect
    # sFile="./Images/6.jpeg"#2半张脸不行,5侧脸效果也不行,6头发与肤色相近，效果差些
     #sStore="./Images/marked_6.jpg"
-   # marke_one_face_image(predictor,detector,sFile,sStore)
+    #marke_one_face_image(predictor,detector,sFile,sStore)
 
     #capter yawn
     #capteryawn(detector,predictor)

@@ -34,7 +34,7 @@ def find_person_rect(sFile):
 if __name__ == '__main__':
     base_dir=os.getcwd()
     folder=os.path.join(base_dir,"media/persons")
-    sFile=os.path.join(folder,"Tom.jpg")
+    sFile=os.path.join(folder,"Tom_smSInH1.jpg")
     #测试通过
     rects,image=find_person_rect(sFile)
     cv2.imshow("temp",image)    
