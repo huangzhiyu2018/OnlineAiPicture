@@ -42,7 +42,7 @@
                             <form method="post" novalidate id="controlform" enctype="multipart/form-data">
                                 <div class="form-group" id="input_person">                        
                                     <label class="col-sm-2" for="person_name">人物姓名：</label>
-                                    <input type="text" class="col-sm-2"  id="person_name" placeholder="Tom" value="Tom" >                                                   
+                                    <input type="text" class="col-sm-2"  id="person_name" placeholder="Tom" value="第一人" >                                                   
                                 </div>
                                 <div class="form-group">                            
                                     <input id="take" class="btn btn-success col-sm-2" value="拍照"></input>
@@ -175,8 +175,8 @@
               // 用表单来初始化
                 var formdata = new FormData(form);           
                 formdata.append("person_name",personName);
-                //必须是file字段的添加
-                formdata.append("file",blob,personName+".jpg");   
+                //必须是file字段的添加，防止汉语名称不识别，这里用英文名称
+                formdata.append("file",blob,"person.jpg");   
                     
                 //没有问题            
                 $.ajax({

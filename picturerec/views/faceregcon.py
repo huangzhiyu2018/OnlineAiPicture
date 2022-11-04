@@ -1,5 +1,6 @@
 import os
 import ast
+import pickle
 import datetime
 import uuid
 from django.shortcuts import render,  redirect
@@ -10,7 +11,6 @@ from django.conf import settings
 from picturerec.utils.forms import BootrapModelForm
 from picturerec.utils import dlibcompute
 from django.db.models import Q
-from PIL import Image
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
@@ -37,13 +37,16 @@ def scrapy_image(request):
             #print(absolute_file_path)
             #得到人脸信息
             rects,image=dlibcompute.find_person_rect(absolute_file_path)  
+            
+            #讲数据转成字符序列
+            s=pickle.dumps(rects)
             #print(len(rects))         
 
             isValide=0
             if len(rects)==1:
                 isValide=1 
 
-            models.PersonInfor.objects.filter(file=form.instance.file.name).update(isvalide=isValide)
+            models.PersonInfor.objects.filter(file=form.instance.file.name).update(isvalide=isValide,rects=s)
             
             return JsonResponse({"status":True,"path":form.instance.file.name,"valide":isValide})
         else:            
@@ -79,7 +82,7 @@ def handle_uploaded_file(file):
     with open(absolute_file_path, 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
-    return url_file_name
+    return url_file_name,absolute_file_path
 @csrf_exempt
 def face_recon(request):
     """人脸识别
@@ -88,19 +91,53 @@ def face_recon(request):
         request (_type_): _description_
     """
     if request.method=="GET":
-        querySet = models.PersonInfor.objects.all() 
+        #只显示有效信息
+        querySet = models.PersonInfor.objects.filter(isvalide=1) 
         return render(request,"personrecon.html",{"querySet":querySet})
     #提交图片后进行识别
     form= PersonInforModelForm(request.POST,request.FILES)  
     if form.is_valid():
-        file = request.FILES.get("file")   
-        urlfilename=handle_uploaded_file(file)
+        file = request.FILES.get("file")  
+        #返回两个路径一个用于显示，一个用于读取 
+        url_file_name,absolute_file_path = handle_uploaded_file(file)
+        
+        #print(url_file_name,absolute_file_path)
+        
+        rects,image=dlibcompute.find_person_rect(absolute_file_path)  
+        
+        #print(len(rects))
+        
+        if len(rects)!=1:
+            return JsonResponse({"status":True,"path":url_file_name,"valide":0,"person":"无法识别"})
+        
+        #合适的人脸数据信息，对人脸数据进行读取
+        detector=dlibcompute.get_front_face_dector()
+        landmarks_predictor=dlibcompute.get_point_5_infor()
+        face_encoder=dlibcompute.get_face_encodeing()    
+
+        #dlibcompute.face_encodings
+        #先把所有在人物信息表中的数据进行计算，如果计算过了就不必计算了
+        compute_person_description(detector=detector,landmarks_predictor=landmarks_predictor,face_encoder=face_encoder)
+        
         #有效的提交进行图片处理
-        return JsonResponse({"status":True,"path":urlfilename,"valide":0,"person":""})    
+        return JsonResponse({"status":True,"path":url_file_name,"valide":1,"person":""})    
     else:            
         return JsonResponse({"status":False,"errors":form.errors})    
 
-    
+def compute_person_description(detector,landmarks_predictor,face_encoder):
+    querySet = models.PersonInfor.objects.filter(isvalide=1,descriptions__isnull=True)
+    for temp in querySet:
+        #对于所有没有计算描述的图片计算描述信息，已经计算的不用
+        absolute_file_path = os.path.join('media', str(temp.file))
+        description,landmarks=dlibcompute.face_encoding_by_file(absolute_file_path,detector,landmarks_predictor,face_encoder)       
+        if description is None:
+            continue
+        else:
+            #更新数据集信息
+            s_description=pickle.dumps(description)
+            s_landmarks=pickle.dumps(landmarks)
+            models.PersonInfor.objects.filter(id=temp.id).update(landmarks=s_landmarks,descriptions=s_description)
+            
 
 def face_list(request):    
     querySet = models.PersonInfor.objects.all() 
@@ -137,7 +174,7 @@ class PersonInforModelForm(BootrapModelForm):
     """
     class Meta:
         model=models.PersonInfor        
-        exclude=["upload_user","create_time","isvalide"]
+        exclude=["upload_user","create_time","isvalide","rects","landmarks","descriptions"]
         bootstrap_exclude_fileds=["file"]   
     def clean_file(self):
         file = self.cleaned_data['file']
