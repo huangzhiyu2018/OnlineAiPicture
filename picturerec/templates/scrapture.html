@@ -1,0 +1,228 @@
+{% extends 'master.html' %}
+{% block css %} 
+    <style>    
+        video, canvas {
+            width: 300px;
+            height: 300px;
+            border: 5px solid #000;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
+    </style>
+{% endblock %}
+{% block contain %}
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h3 class="panel-title">采集人脸图像</h3>
+        </div>
+        <div class="panel-body" >
+            <div class="panel panel-default" style="margin:10px 10px">
+                <div class="panel-heading">
+                  <h3 class="panel-title">采集面部</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="col-md-6">                    
+                        <video id="video" ></video>
+                     </div>
+                     <!-- 尽量在canvas标签上设置宽高 -->
+                     <div class="col-md-6">
+                       <canvas id="canvas" width="300px" height="300px"></canvas>
+                     </div> 
+                </div>
+            </div>
+            
+             <div class="col-md-6">   
+                    <div class="panel panel-default" style="margin:10px 10px"  height="300px">
+                        <div class="panel-heading">
+                           <h3 class="panel-title">控制面板</h3>
+                        </div>
+                        <div class="panel-body" style="margin:10px 10px">
+                            
+                           <button id="play" class="btn btn-success" >开启摄像</button>
+                         
+                            <form method="post" novalidate id="controlform" enctype="multipart/form-data">
+                                <div class="form-group" id="input_person">                        
+                                    <label class="col-sm-2" for="person_name">人物姓名：</label>
+                                    <input type="text" class="col-sm-2"  id="person_name" placeholder="Tom" value="Tom" >                                                   
+                                </div>
+                                <div class="form-group">                            
+                                    <input id="take" class="btn btn-success col-sm-2" value="拍照"></input>
+                                    <input id="upload" class="btn btn-info col-sm-2" value="采集"></input>                              
+                                </div>
+                            </form>
+                           
+                            
+                        </div>
+                    </div>
+                
+                </div>       
+
+             <!--加上一个处理结果显示情况-->
+             <div class="col-md-6" id="result_panel">   
+                <div class="panel panel-default" style="margin:10px 10px">
+                    <div class="panel-heading">
+                    <h3 class="panel-title">采集结果</h3>
+                    </div>
+                    <div class="panel-body" style="margin:10px 10px">
+                    <img style="height:300px" id="img_result"></img>
+                    </div>
+                </div>
+            </div>  
+                
+
+            </div>        
+        </div>
+
+        <div class="panel-footer">
+            <p class="list-group-item-text" id="pic_result"></p>
+            <a href="/facerecon/list/" style="align:right">采集结果列表 </a>
+        </div>
+    </div>
+</div>   
+  
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+    var click_start_vedio=0;
+    var click_scrap=0;
+    var ajaxurl;
+
+    function playfunction(){
+        // 开启摄像
+        document.getElementById('play').onclick = () => {
+            let constraints = {
+                // video属性设置
+                video: {
+                    width: 300,
+                    height: 300
+                },
+                // audio属性设置
+                audio: false
+            }
+            navigator.mediaDevices.getUserMedia(constraints)
+            .then(mediaStream => {
+                // 成功返回promise对象，接收一个mediaStream参数与video标签进行对接
+                document.getElementById('video').srcObject = mediaStream
+                document.getElementById('video').play()
+                click_start_vedio=1;//记录开启视频
+            })
+            // 失败就失败了
+        }
+    }
+   function photofunction(){
+        // 拍照、canvas绘制        
+                document.getElementById('take').onclick = () => {
+                    if (click_start_vedio==1){
+                        let ctx = document.getElementById("canvas").getContext('2d')
+                        ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)        
+                        click_scrap=1;
+                        $("#img_result").removeAttr("src");
+                    }else{
+                        alert("请点击开始摄像按钮");
+                    }
+                
+             } 
+        
+   }
+    
+   function dataURItoBlob(base64Data) {
+        var byteString;
+        if (base64Data.split(',')[0].indexOf('base64') >= 0)
+            byteString = atob(base64Data.split(',')[1]);
+        else
+            byteString = unescape(base64Data.split(',')[1]);
+        var mimeString = base64Data.split(',')[0].split(':')[1].split(';')[0];
+        var ia = new Uint8Array(byteString.length);
+        for (var i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ia], {type: mimeString});
+    };
+
+    //将blob转换为file
+    function blobToFile(theBlob, fileName) {
+        theBlob.lastModifiedDate = new Date();
+        theBlob.name = fileName;
+        return theBlob;
+    };
+
+   function uploadfunction(){
+    $("#upload").on({
+        "click":function(){  
+            if(click_start_vedio==0){
+                alert("首先点击开启摄像，然后点击拍照");
+                return;
+            }
+            var personName=$("#person_name").val();
+            if (personName){
+                if(click_scrap==1){
+                click_scrap=0
+                canvas = document.getElementById('canvas');
+                    
+                //生成图片格式base64包括：jpg、png格式
+                var base64Data = canvas.toDataURL("image/jpeg", 1.0);
+                
+                //封装blob对象
+                var blob = dataURItoBlob(base64Data);
+    
+                var file = blobToFile(blob, personName);
+    
+                //利用FormData进行传值
+                var form = document.getElementById("controlform");
+                
+              // 用表单来初始化
+                var formdata = new FormData(form);           
+                formdata.append("person_name",personName);
+                //必须是file字段的添加
+                formdata.append("file",blob,personName+".jpg");   
+                    
+                //没有问题            
+                $.ajax({
+                    url: ajaxurl,
+                    type:"post",
+                    data:formdata, 
+                    processData: false,//用于对data参数进行序列化处理 这里必须false
+                    contentType: false, //必须
+                    success:function(res){
+                      if(res.status){
+                        var valide="图片中没有脸部信息"
+                        if (res.valide){
+                            valide="图片有效"
+                        }
+                        $("#pic_result").html("文件:"+res.path+"上传成功！<br>"+valide)
+                        //console.log(res.path)
+                        $("#img_result").attr("src","/media/"+res.path)
+                      }else{                    
+                        console.log(res.errors)
+                      }
+    
+                    }
+          
+                  }
+                  )
+
+                }else{
+                    alert("必须点击拍照！");
+                }
+
+
+                
+
+            }else{
+                alert("必须输入姓名")
+            }          
+             
+           
+        },
+    })    
+   }
+   
+    
+</script>
+{% block exjs%}
+{% endblock %}
+
+{% endblock %}
+
+

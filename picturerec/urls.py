@@ -38,4 +38,5 @@ urlpatterns = [
     path("facerecon/list/",faceregcon.face_list),
     path("facerecon/recon/",faceregcon.face_recon),
     path("facerecon/delete/",faceregcon.face_delete),
+    path("facerecon/test/",faceregcon.face_test),
 ]

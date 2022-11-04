@@ -60,6 +60,8 @@ def scrapy_image(request):
         #return render(request,"scraperimage.html",{"status":True})
     
     return render(request,"scraperimage.html")
+def face_test(request):
+    return render(request,"testcascade.html")
 def face_recon(request):
     """人脸识别
 
