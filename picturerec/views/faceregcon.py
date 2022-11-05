@@ -9,7 +9,7 @@ from picturerec import models
 from django.http import JsonResponse
 from django.conf import settings
 from picturerec.utils.forms import BootrapModelForm
-from picturerec.utils import dlibcompute
+from picturerec.utils import dlibcompute,distancecompute
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 
@@ -111,32 +111,73 @@ def face_recon(request):
             return JsonResponse({"status":True,"path":url_file_name,"valide":0,"person":"无法识别"})
         
         #合适的人脸数据信息，对人脸数据进行读取
+        baseDir=os.path.join(settings.BASE_DIR,r"picturerec\utils")
+        
         detector=dlibcompute.get_front_face_dector()
-        landmarks_predictor=dlibcompute.get_point_5_infor()
-        face_encoder=dlibcompute.get_face_encodeing()    
-
+        landmarks_predictor=dlibcompute.get_point_5_infor(baseDir)
+        face_encoder=dlibcompute.get_face_encodeing(baseDir)  
+          
+        #print("*"*10)
+        
         #dlibcompute.face_encodings
         #先把所有在人物信息表中的数据进行计算，如果计算过了就不必计算了
         compute_person_description(detector=detector,landmarks_predictor=landmarks_predictor,face_encoder=face_encoder)
-        
+        #计算当前照片的的描述和标志点
+        descriptions,_=dlibcompute.face_dector_encodings(image,detector=detector,landmarks_predictor=landmarks_predictor,face_encoder=face_encoder)        
+        findperson,min_person=find_person(descriptions)        
         #有效的提交进行图片处理
-        return JsonResponse({"status":True,"path":url_file_name,"valide":1,"person":""})    
+        return JsonResponse({"status":True,"path":url_file_name,"valide":1,"person":findperson,"min_person":min_person})    
     else:            
         return JsonResponse({"status":False,"errors":form.errors})    
+def find_person(temp_description):
+    if temp_description is None:
+        print("temp_description is None")
+        return "temp_description is None"
+    if len(temp_description)==0:
+        print("temp_description is empty")
+        
+    querySet = models.PersonInfor.objects.filter(isvalide=1,descriptions__isnull=False)#得到数据集，必须要求描述不空
+    thread=0.4
+    find_person=""
+    min_value_person=""
+    min_value=10000
+    for temp in querySet:
+        #record_description=(temp.descriptions)
+        s=f"{temp.descriptions}"
+        
+        L1=ast.literal_eval(s)
+        #print(L1)
+        np_description=pickle.loads(L1)
+        if len(np_description)==0:
+            print(f"description is zero {temp.id}:{temp.person_name}")            
+            continue
+        print(len(np_description[0]))
+        d=distancecompute.Euclidean_distance(np_description,temp_description)
+        if d<min_value:
+            min_value=d
+            #搜索
+            min_value_person=f"{temp.person_name}"
+            if d<thread:
+                find_person=f"{temp.person_name}"
+        
+            
+    return find_person,min_value_person
+        
 
 def compute_person_description(detector,landmarks_predictor,face_encoder):
-    querySet = models.PersonInfor.objects.filter(isvalide=1,descriptions__isnull=True)
+    #默认是blank，判断用""
+    querySet = models.PersonInfor.objects.filter(descriptions="",isvalide=1)
+    
+    #print("query sets lin 148=",len(querySet))    
     for temp in querySet:
         #对于所有没有计算描述的图片计算描述信息，已经计算的不用
         absolute_file_path = os.path.join('media', str(temp.file))
-        description,landmarks=dlibcompute.face_encoding_by_file(absolute_file_path,detector,landmarks_predictor,face_encoder)       
+        description,landmarks=dlibcompute.face_encoding_by_file(absolute_file_path,detector,landmarks_predictor,face_encoder)  
         if description is None:
-            continue
-        else:
-            #更新数据集信息
-            s_description=pickle.dumps(description)
-            s_landmarks=pickle.dumps(landmarks)
-            models.PersonInfor.objects.filter(id=temp.id).update(landmarks=s_landmarks,descriptions=s_description)
+            continue     
+        s_description=pickle.dumps(description)
+        s_landmarks=pickle.dumps(landmarks)
+        models.PersonInfor.objects.filter(id=temp.id).update(landmarks=s_landmarks,descriptions=s_description)
             
 
 def face_list(request):    
@@ -182,3 +223,5 @@ class PersonInforModelForm(BootrapModelForm):
         if ext not in ["bmp","jpg","png"]:
             raise forms.ValidationError("仅支持bmp,jpg,png 类型文件")
         return file
+
+    

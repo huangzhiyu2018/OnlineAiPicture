@@ -39,6 +39,7 @@
                         </div>
                         <div class="panel-body" style="margin:10px 10px">                            
                            <button id="play" class="btn btn-success" >开启摄像</button>                         
+                           <button id="close" class="btn btn-danger " >关闭视频</button>                              
                             <form method="post" novalidate id="controlform" enctype="multipart/form-data">
                                 <div class="form-group" id="input_person">                        
                                     <label class="col-sm-2" for="person_name">人物姓名：</label>
@@ -47,6 +48,8 @@
                                 <div class="form-group">                            
                                     <input id="take" class="btn btn-success col-sm-2" value="拍照"></input>
                                     <input id="upload" class="btn btn-info col-sm-2" value="采集"></input>                              
+                                    
+                                    
                                 </div>
                             </form>
                            
@@ -89,6 +92,63 @@
     var ajaxurl;
     var show_result_alert=0;
 
+     var  mediaStreamTrack;
+     // 获取媒体方法（旧方法）
+    function closevideofunction(){
+        $("#close").on({
+            "click":function(){               
+                if(mediaStreamTrack){
+                    mediaStreamTrack.stop();
+                    mediaStreamTrack=[];
+                    console.log("stop");                    
+                    click_start_vedio=0;
+                }else{
+                    console.log("mediaStreamTrack is empty")
+                }
+                 
+            }
+        })
+    }
+    {% comment %} function newplayfunction(){
+        $("#test").on({
+            "click":function(){               
+                navigator.getMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMeddia || navigator.msGetUserMedia;
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                           console.log("new");
+                             navigator.mediaDevices.getUserMedia({
+                                 video: true,
+                                 audio: false
+                             }).then(function(stream) {
+                                 //console.log(stream);                     
+                                 mediaStreamTrack = typeof stream.stop === 'function' ? stream : stream.getTracks()[0];    
+                                 console.log(mediaStreamTrack)                 
+                                 //video.src = (window.URL || window.webkitURL).createObjectURL(stream);
+                                 video.srcObject=stream;
+                                 video.play();
+                             }).catch(function(err) {
+                                 console.log(err);
+                             })
+                         }
+                         // 使用旧方法打开摄像头
+                         else if (navigator.getMedia) {
+                            console.log("old");
+                             navigator.getMedia({
+                                 video: true,
+                                 audio: false
+                             }, function(stream) {
+                                 mediaStreamTrack = stream.getTracks()[0];                     
+                                 //video.src = (window.URL || window.webkitURL).createObjectURL(stream);
+                                 video.srcObject=stream;
+                                 video.play();
+                             }, function(err) {
+                                 console.log(err);
+                             });
+                         }
+            }
+
+        })
+        
+    } {% endcomment %}
     function playfunction(){
         // 开启摄像
         document.getElementById('play').onclick = () => {
@@ -106,6 +166,7 @@
                 // 成功返回promise对象，接收一个mediaStream参数与video标签进行对接
                 document.getElementById('video').srcObject = mediaStream
                 document.getElementById('video').play()
+                mediaStreamTrack = typeof mediaStream.stop === 'function' ? mediaStream : mediaStream.getTracks()[0];    
                 click_start_vedio=1;//记录开启视频
             })
             // 失败就失败了
@@ -197,7 +258,7 @@
                         if (show_result_alert){
                             if(res.valide)
                             {
-                                alert("当前人物为："+res.person)
+                                alert("当前人物为："+res.person+"\n 可能人物："+res.min_person)
                             }else{
                                 alert(valide);
                             }

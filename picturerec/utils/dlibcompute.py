@@ -37,26 +37,34 @@ def get_front_face_dector():
     """
     detector = dlib.get_frontal_face_detector()
     return detector
-def get_face_encodeing():
+def get_face_encodeing(baseDir):
     """得到人脸编码模型
 
     Returns:
         _type_: _description_
     """
-    shape_5_file=os.path.join(MODELFOLDER,"dlib_face_recognition_resnet_model_v1.dat")
+    shape_5_Folder=MODELFOLDER
+    if baseDir:
+        shape_5_Folder=os.path.join(baseDir,shape_5_Folder)
+        
+    shape_5_file=os.path.join(shape_5_Folder,"dlib_face_recognition_resnet_model_v1.dat")
     if glob.glob(shape_5_file):         
         face_encoder = dlib.face_recognition_model_v1(shape_5_file)
         return face_encoder
     else:
         print("not exisxt",shape_5_file)
         return None
-def get_point_5_infor():
+def get_point_5_infor(baseDir):
     """得到人脸识别5个数据点的模型
 
     Returns:
         _type_: _description_
     """
-    shape_5_file=os.path.join(MODELFOLDER,"shape_predictor_5_face_landmarks.dat")
+    shape_5_Folder=MODELFOLDER
+    if baseDir:
+        shape_5_Folder=os.path.join(baseDir,shape_5_Folder)
+    
+    shape_5_file=os.path.join(shape_5_Folder,"shape_predictor_5_face_landmarks.dat")
     #与执行的路径有关
     if glob.glob(shape_5_file): 
         #print("exist",shape_5_file)
@@ -66,13 +74,16 @@ def get_point_5_infor():
         print("not exisxt",shape_5_file)
         return None
    
-def get_point_68_infor():
+def get_point_68_infor(baseDir):
     """得到人脸识别5个数据点的模型
 
     Returns:
         _type_: _description_
     """
-    shape_5_file=os.path.join(MODELFOLDER,"shape_predictor_68_face_landmarks.dat")
+    shape_5_Folder=MODELFOLDER
+    if baseDir:
+        shape_5_Folder=os.path.join(baseDir,shape_5_Folder)
+    shape_5_file=os.path.join(shape_5_Folder,"shape_predictor_68_face_landmarks.dat")
     if glob.glob(shape_5_file): 
         print("exist",shape_5_file)
         pose_predictor_5_point = dlib.shape_predictor(shape_5_file)
@@ -105,6 +116,7 @@ def face_dector_encodings(face_image,detector,landmarks_predictor, face_encoder,
     """返回图像中每个人脸的 128D 描述符"""
     # 检测人脸
     face_locations = detector(face_image, number_of_times_to_upsample)
+    #print(f"Face Number：{len(face_locations)}")
     return face_encodings(face_image,face_locations,landmarks_predictor, face_encoder, num_jitters)
 
 def face_encodings(face_image,face_locations,landmarks_predictor, face_encoder, num_jitters=1):
@@ -117,7 +129,7 @@ def face_encodings(face_image,face_locations,landmarks_predictor, face_encoder, 
                 raw_landmark_set in raw_landmarks]),np.array(raw_landmarks)
         
     else:
-        return None
+        return None,None
 if __name__ == '__main__':
     #base_dir=os.getcwd()
     #sModelFolder=os.path.join(base_dir,r"utils/",sModelFolder)
@@ -127,16 +139,16 @@ if __name__ == '__main__':
     
     #在下面的路径下执行
     #(base) E:\vscodeforpython\Web\recogpic\picturerec\utils>
-    sFile=os.path.join(r"..\..\media\persons","Tom_pVPjUwF.jpg")
+    sFile=os.path.join(r"..\..\media\upload","dd98e9fa1b.jpg")
     if glob.glob(sFile): 
         print("exist",sFile)
         image = cv2.imread(sFile) 
     
-        detector=get_front_face_dector()
+        detector=get_front_face_dector()        
         landmarks_predictor=get_point_5_infor()
         face_encoder=get_face_encodeing()
         n=face_dector_encodings(image,detector,landmarks_predictor,face_encoder)
-        print(type(n[0]))
+        print(type(n[0]),n)
     else:
         print("not exisxt",sFile)
     
