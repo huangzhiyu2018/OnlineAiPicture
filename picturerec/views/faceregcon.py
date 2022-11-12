@@ -52,12 +52,7 @@ def scrapy_image(request):
         else:            
             return JsonResponse({"status":False,"errors":form.errors})
                 
-        # personName=request.POST.get("person_name")
-        # file = request.FILES.get("file")           
-        # db_file = handle_uploaded_file(file,personName)
-        # print(db_file)        
-        # return render(request,"scraperimage.html",{"status":True,"personName":personName,"dbFile":db_file})
-        #return render(request,"scraperimage.html",{"status":True})
+        
     
     return render(request,"scraperimage.html")
 def face_test(request):
@@ -143,10 +138,8 @@ def find_person(temp_description):
     min_value=10000
     for temp in querySet:
         #record_description=(temp.descriptions)
-        s=f"{temp.descriptions}"
-        
-        L1=ast.literal_eval(s)
-        #print(L1)
+        #s=f"{temp.descriptions}"#不用转换        
+        L1=ast.literal_eval(temp.descriptions)        
         np_description=pickle.loads(L1)
         if len(np_description)==0:
             print(f"description is zero {temp.id}:{temp.person_name}")            
